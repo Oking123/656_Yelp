@@ -34,25 +34,22 @@ class UI:
         while True:
             print("0. Read newest posts")
             print("1. Post")
-            print("2. Post tip")
-            print("3. Friend")
-            print("4. Group")
-            print("5. Topic")
-            print("6. Signout")
+            print("2. Friend")
+            print("3. Group")
+            print("4. Topic")
+            print("5. Signout")
             option = input("")
             if option == '0':
                 self.read_post()
             elif option == '1':
                 self.post_menu()
             elif option == '2':
-                self.post_tip()
-            elif option == '3':
                 self.add_friend()
-            elif option == '4':
+            elif option == '3':
                 self.group_menu()
-            elif option == '5':
+            elif option == '4':
                 self.topic_menu()
-            elif option == '6':
+            elif option == '5':
                 return
 
     def group_menu(self):
