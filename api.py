@@ -55,6 +55,7 @@ class UI:
             else:
                 print("Error: wrong command", file=sys.stderr)
 
+
     def group_menu(self):
         while True:
             print("0. Show my groups")
@@ -415,16 +416,50 @@ class UI:
         db.commit()
         return 1
 
+    def compliment_on_review(self, review_id, up_or_down):
+        '''
 
+        :param review: string 22 byte review_id
+        :param up_or_down:int 1 means up -1 means down
+        :return:
+        '''
+        if up_or_down == 1:
+            cursor.execute("select user_id from review where review_id = '{}'".format(review_id))
+            user = cursor.fetchone()[0]
+            cursor.execute("update user set useful = useful + 1 where user_id = '{}'".format(user))
+            cursor.execute("update review set useful = useful + 1 where review_id = '{}';".format(review_id))
+        else:
+            cursor.execute("select user_id from review where review_id = '{}'".format(review_id))
+            user = cursor.fetchone()[0]
+            cursor.execute("update user set useful = useful - 1 where user_id = '{}'".format(user))
+            cursor.execute("update review set useful = useful - 1 where review_id = '{}';".format(review_id))
+        db.commit()
+        return 1
+
+    def compliment_on_tip(self, tip_id, up_or_down):
+        '''
+
+        :param tip_id: String tip_id
+        :param up_or_down: int 1 means up -1 means down
+        :return:
+        '''
+        if up_or_down == 1:
+            cursor.execute("select user_id from tip where tip_id = '{}'".format(tip_id))
+            user = cursor.fetchone()[0]
+            cursor.execute("update user set useful = useful + 1 where user_id = '{}'".format(user))
+            cursor.execute("update tip set compliment_count = compliment_count + 1 where tip_id = '{}';".format(tip_id))
+        else:
+            cursor.execute("select user_id from tip where tip_id = '{}'".format(tip_id))
+            user = cursor.fetchone()[0]
+            cursor.execute("update user set useful = useful - 1 where user_id = '{}'".format(user))
+            cursor.execute("update tip set compliment_count = compliment_count - 1 where tip_id = '{}';".format(tip_id))
+        db.commit()
+        return 1
 
 
 ui = UI()
 ui.check_password()
 # ui.set_userid('___I9ZYdYGkZ6dMYxwJEIQ')
-# ui.post_review("kajhsdjahsd", "CCRgGKhzxSpl38w7yhqKUw",4)
-# print(ui.post_tip("123123",'xVEtGucSRLk5pxxN0t4i6g'))
-# print(ui.follow_topic('__6jYJ6Hm-Qq8XQEGDrOGQ'))
-# print(ui.quit_group(2))
-# ui.create_group("group4")
+# ui.compliment_on_tip('1',-1)
 db.commit()
 db.close()
