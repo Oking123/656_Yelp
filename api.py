@@ -128,7 +128,7 @@ class UI:
             print("3. Back")
             option = input("")
             if option == '0':
-                pass
+                self.mypost()
             elif option == '1':
                 business_id = input("Target topic:")
                 comment = input("Comment:")
@@ -147,20 +147,142 @@ class UI:
         self.user_id = user_id
 
     def read_post(self):
+        while True:
+            print('0. Friend and Group')
+            print('1. Topic')
+            print('2. Back')
+            option = input('')
+            if option == '0':
+                self.read_post_friend()
+            elif option == '1':
+                self.read_post_topic()
+            elif option == '2':
+                return
+            else:
+                print("Error: wrong command", file=sys.stderr)
+
+    def read_post_friend(self):
+        post = []
+        # select friends from friend_list
         cursor.execute('select follower_id from friend_list where followed_id = "{}" ;'.format(self.user_id))
         results = cursor.fetchall()
-        cursor.execute('select time from temp where user_id = "{}"'.format(self.user_id))
-        time = cursor.fetchone()[0]
-        print(time)
-        for friend in results:
-            cursor.execute('select user_id, review_date, review_text from review where user_id = "{}"'.format(friend[0]))
-            text = cursor.fetchall()
-            for rows in text:
-                print(rows[0],rows[1])
+        # select friends from group
+        cursor.execute('select user_id from (select user_id from group_join where group_id in (select group_id from group_join where user_id = "{}")) as A where user_id !="{}";'.format(self.user_id,self.user_id))
+        group_result = cursor.fetchall()
+        friend_list = []
+        if results:
+            for friend in results:
+                friend_list.append(friend[0])
+        if group_result:
+            for friend in group_result:
+                friend_list.append(friend[0])
+        friend_list = list(set(friend_list))
+        # select refresh time from user
+        cursor.execute('select friendtime from user_time where user_id = "{}"'.format(self.user_id))
+        refresh_time = str(cursor.fetchone()[0])
+        # select reviews and tips
+        for item in friend_list:
+            cursor.execute('select user_id,review_date,name,review_text from ((select user_id, business_id, review_date,review_text from review where user_id = "{}") as A inner join (select business_id,name from business) as B on A.business_id = B.business_id);'.format(item))
+            results = cursor.fetchall()
+            if results:
+                for review in results:
+                    temp=(review[0],str(review[1]),'review',review[2],review[3])
+                    post.append(temp)
+        for item in friend_list:
+            cursor.execute('select user_id,tip_date,name,tip_text from ((select user_id, business_id, tip_date,tip_text from tip where user_id = "{}") as A inner join (select business_id,name from business) as B on A.business_id = B.business_id);'.format(item))
+            results = cursor.fetchall()
+            if results:
+                for tip in results:
+                    temp=(tip[0],str(tip[1]),'tip',tip[2],tip[3])
+                    post.append(temp)
+        post = list(set(post))
+        post.sort(key = lambda i:i[1])
+        for item in post:
+            if item[1] > refresh_time:
+                print(item[0],item[1],item[2],item[3])
                 print('')
-                print(rows[2])
+                print(item[4])
                 print('')
-        print('0')
+        # change the time in table user into current time
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        cursor.execute('update user_time set friendtime = "{}"where user_id = "{}"'.format(current_time,self.user_id))
+        db.commit()
+
+    def read_post_topic(self):
+        post = []
+        # select followed_topic
+        cursor.execute('select business_id from follow_topic where user_id = "{}"'.format(self.user_id))
+        topic = cursor.fetchall()
+        topic_id = []
+        if topic:
+            for id in topic:
+                topic_id.append(id[0])
+        topic_id = list(set(topic_id))
+
+        # select refresh time
+        cursor.execute('select topictime from user_time where user_id  = "{}"'.format(self.user_id))
+        refresh_time = str(cursor.fetchone()[0])
+
+        # selec reviews and tips
+        for item in topic_id:
+            cursor.execute(
+                'select user_id, business_id, review_date,review_text from review where business_id = "{}";'.format(
+                    item))
+            result1 = cursor.fetchall()
+            cursor.execute('select name from business where business_id = "{}"'.format(item))
+            result2 = cursor.fetchone()[0]
+            if result1 and result2:
+                for review in result1:
+                    temp = (review[0], str(review[2]), 'review', result2, review[3])
+                    post.append(temp)
+        for item in topic_id:
+            cursor.execute(
+                'select user_id, business_id, tip_date,tip_text from tip where business_id = "{}";'.format(item))
+            result1 = cursor.fetchall()
+            cursor.execute('select name from business where business_id = "{}"'.format(item))
+            result2 = cursor.fetchone()[0]
+            if result1 and result2:
+                for tip in result1:
+                    temp = (tip[0], str(tip[2]), 'tip', result2, tip[3])
+                    post.append(temp)
+        post = list(set(post))
+        post.sort(key=lambda i: i[1])
+        for item in post:
+            if item[1] > refresh_time:
+                print(item[0], item[1], item[2], item[3])
+                print('')
+                print(item[4])
+                print('')
+        # change the time in table user into current time
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        cursor.execute('update user_time set topictime = "{}"where user_id = "{}"'.format(current_time, self.user_id))
+        db.commit()
+
+    def mypost(self):
+        mypost = []
+        cursor.execute(
+            'select user_id,review_date,name,review_text from ((select user_id, business_id, review_date,review_text from review where user_id = "{}") as A inner join (select business_id,name from business) as B on A.business_id = B.business_id);'.format(
+                self.user_id))
+        result1 = cursor.fetchall()
+        if result1:
+            for review in result1:
+                temp = (review[0], str(review[1]), 'review', review[2], review[3])
+                mypost.append(temp)
+        cursor.execute(
+            'select user_id,tip_date,name,tip_text from ((select user_id, business_id, tip_date,tip_text from tip where user_id = "{}") as A inner join (select business_id,name from business) as B on A.business_id = B.business_id);'.format(
+                self.user_id))
+        result2 = cursor.fetchall()
+        if result2:
+            for tip in result2:
+                temp = (tip[0], str(tip[1]), 'tip', tip[2], tip[3])
+                mypost.append(temp)
+        mypost = list(set(mypost))
+        mypost.sort(key=lambda i: i[1])
+        for item in mypost:
+            print(item[0], item[1], item[2], item[3])
+            print('')
+            print(item[4])
+            print('')
 
     def post_review(self,comment,business_id,rate):
         current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
