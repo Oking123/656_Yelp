@@ -53,6 +53,19 @@ class UI:
                 return
 
     def read_post(self):
+        cursor.execute('select follower_id from friend_list where followed_id = "{}" ;'.format(self.user_id))
+        results = cursor.fetchall()
+        cursor.execute('select time from temp where user_id = "{}"'.format(self.user_id))
+        time = cursor.fetchone()[0]
+        print(time)
+        for friend in results:
+            cursor.execute('select user_id, review_date, review_text from review where user_id = "{}"'.format(friend[0]))
+            text = cursor.fetchall()
+            for rows in text:
+                print(rows[0],rows[1])
+                print('')
+                print(rows[2])
+                print('')
         print('0')
 
     def post_review(self):
