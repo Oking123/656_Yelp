@@ -1,6 +1,7 @@
 import sys
 import time
 import pymysql
+import hashlib
 
 db = pymysql.connect("155.138.138.104","xuan","19941110","yelp")
 cursor = db.cursor()
@@ -51,6 +52,8 @@ class UI:
                 self.topic_menu()
             elif option == '5':
                 return
+            else:
+                print("Error: wrong command", file=sys.stderr)
 
     def group_menu(self):
         while True:
@@ -129,11 +132,16 @@ class UI:
             elif option == '1':
                 business_id = input("Target topic:")
                 comment = input("Comment:")
-                self.post_review(comment,business_id)
+                rate = input("Rate:")
+                self.post_review(comment,business_id,rate)
             elif option == '2':
                 business_id = input("Target topic:")
                 comment = input("Comment:")
                 self.post_tip(comment,business_id)
+            elif option == '3':
+                return
+            else:
+                print("Error: wrong command", file=sys.stderr)
 
     def set_userid(self, user_id):
         self.user_id = user_id
@@ -141,7 +149,19 @@ class UI:
     def read_post(self):
         print('0')
 
-    def post_review(self,comment,business_id):
+    def post_review(self,comment,business_id,rate):
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        temp = business_id + self.user_id + current_time
+        comment_id = hashlib.sha3_256(temp.encode('utf-8')).hexdigest()[:22]
+        rate = round(float(rate),1)
+        try:
+            cursor.execute("insert into review value('{}','{}','{}','{}','{}','{}',0,0,0)".format(comment_id,self.user_id,business_id,rate,current_time,comment))
+        except pymysql.err.IntegrityError:
+            print("Error: unexpected business_id", file=sys.stderr)
+            return -1
+        db.commit()
+        return 1
+
         pass
 
     def post_tip(self,comment,business_id):
@@ -151,6 +171,7 @@ class UI:
         except pymysql.err.IntegrityError:
             print("Error: unexpected business_id", file=sys.stderr)
             return -1
+        db.commit()
         return 1
 
     def add_friend(self):
@@ -247,6 +268,7 @@ class UI:
         except pymysql.err.IntegrityError:
             print("Error: unknown business_id.", file = sys.stderr)
             return -1
+        db.commit()
         return 1
 
     def unfollow_topic(self, topic_id):
@@ -255,6 +277,7 @@ class UI:
         except pymysql.err.IntegrityError:
             print("Error: unexpected business_id", file = sys.stderr)
             return -1
+        db.commit()
         return 1
 
 
@@ -263,6 +286,7 @@ class UI:
 ui = UI()
 ui.check_password()
 # ui.set_userid('___I9ZYdYGkZ6dMYxwJEIQ')
+# ui.post_review("kajhsdjahsd", "CCRgGKhzxSpl38w7yhqKUw",4)
 # print(ui.post_tip("123123",'xVEtGucSRLk5pxxN0t4i6g'))
 # print(ui.follow_topic('__6jYJ6Hm-Qq8XQEGDrOGQ'))
 # print(ui.quit_group(2))
