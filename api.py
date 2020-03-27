@@ -163,6 +163,7 @@ class UI:
                 print("Error: wrong command", file=sys.stderr)
 
     def read_post_friend(self):
+        quit1 = 0
         post = []
         # select friends from friend_list
         cursor.execute('select follower_id from friend_list where followed_id = "{}" ;'.format(self.user_id))
@@ -183,33 +184,113 @@ class UI:
         refresh_time = str(cursor.fetchone()[0])
         # select reviews and tips
         for item in friend_list:
-            cursor.execute('select user_id,review_date,name,review_text from ((select user_id, business_id, review_date,review_text from review where user_id = "{}") as A inner join (select business_id,name from business) as B on A.business_id = B.business_id);'.format(item))
+            cursor.execute('select user_id,review_date,name,review_text,review_id from ((select user_id, business_id, review_date,review_text,review_id from review where user_id = "{}") as A inner join (select business_id,name from business) as B on A.business_id = B.business_id);'.format(item))
             results = cursor.fetchall()
             if results:
                 for review in results:
-                    temp=(review[0],str(review[1]),'review',review[2],review[3])
+                    temp=(review[0],str(review[1]),'review',review[2],review[3],review[4])
                     post.append(temp)
         for item in friend_list:
-            cursor.execute('select user_id,tip_date,name,tip_text from ((select user_id, business_id, tip_date,tip_text from tip where user_id = "{}") as A inner join (select business_id,name from business) as B on A.business_id = B.business_id);'.format(item))
+            cursor.execute('select user_id,tip_date,name,tip_text,tip_id from ((select user_id, business_id, tip_date,tip_text,tip_id from tip where user_id = "{}") as A inner join (select business_id,name from business) as B on A.business_id = B.business_id);'.format(item))
             results = cursor.fetchall()
             if results:
                 for tip in results:
-                    temp=(tip[0],str(tip[1]),'tip',tip[2],tip[3])
+                    temp=(tip[0],str(tip[1]),'tip',tip[2],tip[3],tip[4])
                     post.append(temp)
         post = list(set(post))
-        post.sort(key = lambda i:i[1])
+        post.sort(key = lambda i:i[1],reverse=True)
+
+        cursor.execute('select friendlast from user_time where user_id = "{}"'.format(self.user_id))
+        last_time = str(cursor.fetchone()[0])
+
+        finalpost = []
         for item in post:
-            if item[1] > refresh_time:
-                print(item[0],item[1],item[2],item[3])
+            if item[1]>refresh_time or item[1]<last_time:
+                finalpost.append(item)
+
+        if len(finalpost) == 0:
+            return
+
+        while len(finalpost) > 10:
+            quit2 = 0
+            for i in range(10):
+                print(finalpost[i][0],finalpost[i][1],finalpost[i][2],finalpost[i][3],finalpost[i][5])
                 print('')
-                print(item[4])
+                print(finalpost[i][4])
                 print('')
-        # change the time in table user into current time
-        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        cursor.execute('update user_time set friendtime = "{}"where user_id = "{}"'.format(current_time,self.user_id))
-        db.commit()
+            while True:
+                print('0. Compliment')
+                print('1. Next Page')
+                print('2. Back')
+                option = input('')
+                if option == '0':
+                    print('Choose the review or tip:')
+                    id = input('')
+                    print('Like it or not (1 or -1):')
+                    compliment = input('')
+                    if 0<= int(id) <= 9 and (compliment == '1' or compliment == '-1'):
+                        if finalpost[int(id)][2] == 'review':
+                            self.compliment_on_review(finalpost[int(id)][5],compliment)
+                        else:
+                            self.compliment_on_tip(finalpost[int(id)][5], compliment)
+                    elif compliment != '1' or compliment != '-1':
+                        print("Error: wrong compliment", file=sys.stderr)
+                    else:
+                        print("Error: wrong command", file=sys.stderr)
+                elif option == '1':
+                    del(finalpost[:10])
+                    break
+                elif option == '2':
+                    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                    cursor.execute('update user_time set friendtime = "{}"where user_id = "{}"'.format(current_time, self.user_id))
+                    db.commit()
+                    cursor.execute('update user_time set friendlast = "{}"where user_id = "{}"'.format(finalpost[9][1],self.user_id))
+                    db.commit()
+                    quit1 = 1
+                    quit2 = 1
+                    break
+                else:
+                    print("Error: wrong command", file=sys.stderr)
+            if quit2 == 1:
+                break
+        if quit1 == 1:
+            return
+        else:
+            for i in range(len(finalpost)):
+                print(finalpost[i][0], finalpost[i][1], finalpost[i][2], finalpost[i][3],finalpost[i][5])
+                print('')
+                print(finalpost[i][4])
+                print('')
+            while True:
+                print('0. Compliment')
+                print('1. Back')
+                option = input('')
+                if option == '0':
+                    print('Choose the review or tip:')
+                    id = input('')
+                    print('Like it or not (1 or -1):')
+                    compliment = input('')
+                    if 0<= int(id) <= 9 and (compliment == '1' or compliment == '-1'):
+                        if finalpost[int(id)][2] == 'review':
+                            self.compliment_on_review(finalpost[int(id)][5],compliment)
+                        else:
+                            self.compliment_on_tip(finalpost[int(id)][5], compliment)
+                    elif compliment != '1' or compliment != '-1':
+                        print("Error: wrong compliment", file=sys.stderr)
+                    else:
+                        print("Error: wrong command", file=sys.stderr)
+                elif option == '1':
+                    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                    cursor.execute('update user_time set friendtime = "{}"where user_id = "{}"'.format(current_time, self.user_id))
+                    db.commit()
+                    cursor.execute('update user_time set friendlast = "{}"where user_id = "{}"'.format(finalpost[-1][1],self.user_id))
+                    db.commit()
+                    break
+                else:
+                    print("Error: wrong command", file=sys.stderr)
 
     def read_post_topic(self):
+        quit1 = 0
         post = []
         # select followed_topic
         cursor.execute('select business_id from follow_topic where user_id = "{}"'.format(self.user_id))
@@ -226,38 +307,116 @@ class UI:
 
         # selec reviews and tips
         for item in topic_id:
-            cursor.execute(
-                'select user_id, business_id, review_date,review_text from review where business_id = "{}";'.format(
-                    item))
+            cursor.execute('select user_id, business_id, review_date,review_text,review_id from review where business_id = "{}";'.format(item))
             result1 = cursor.fetchall()
             cursor.execute('select name from business where business_id = "{}"'.format(item))
             result2 = cursor.fetchone()[0]
             if result1 and result2:
                 for review in result1:
-                    temp = (review[0], str(review[2]), 'review', result2, review[3])
+                    temp = (review[0], str(review[2]), 'review', result2, review[3],review[4])
                     post.append(temp)
         for item in topic_id:
             cursor.execute(
-                'select user_id, business_id, tip_date,tip_text from tip where business_id = "{}";'.format(item))
+                'select user_id, business_id, tip_date,tip_text,tip_id from tip where business_id = "{}";'.format(item))
             result1 = cursor.fetchall()
             cursor.execute('select name from business where business_id = "{}"'.format(item))
             result2 = cursor.fetchone()[0]
             if result1 and result2:
                 for tip in result1:
-                    temp = (tip[0], str(tip[2]), 'tip', result2, tip[3])
+                    temp = (tip[0], str(tip[2]), 'tip', result2, tip[3],tip[4])
                     post.append(temp)
         post = list(set(post))
-        post.sort(key=lambda i: i[1])
+        post.sort(key=lambda i: i[1],reverse = True)
+
+        cursor.execute('select topiclast from user_time where user_id = "{}"'.format(self.user_id))
+        last_time = str(cursor.fetchone()[0])
+
+        finalpost  = []
         for item in post:
-            if item[1] > refresh_time:
-                print(item[0], item[1], item[2], item[3])
+            if item[1]>refresh_time or item[1]<last_time:
+                finalpost.append(item)
+
+        if len(finalpost) == 0:
+            return
+
+        while len(finalpost) > 10:
+            quit2 = 0
+            for i in range(10):
+                print(finalpost[i][0],finalpost[i][1],finalpost[i][2],finalpost[i][3],finalpost[i][5])
                 print('')
-                print(item[4])
+                print(finalpost[i][4])
                 print('')
-        # change the time in table user into current time
-        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        cursor.execute('update user_time set topictime = "{}"where user_id = "{}"'.format(current_time, self.user_id))
-        db.commit()
+            while True:
+                print('0. Compliment')
+                print('1. Next Page')
+                print('2. Back')
+                option = input('')
+                if option == '0':
+                    print('Choose the review or tip:')
+                    id = input('')
+                    print('Like it or not (1 or -1):')
+                    compliment = input('')
+                    if 0<= int(id) <= 9 and (compliment == '1' or compliment == '-1'):
+                        if finalpost[int(id)][2] == 'review':
+                            self.compliment_on_review(finalpost[int(id)][5],compliment)
+                        else:
+                            self.compliment_on_tip(finalpost[int(id)][5], compliment)
+                    elif compliment != '1' or compliment != '-1':
+                        print("Error: wrong compliment", file=sys.stderr)
+                    else:
+                        print("Error: wrong command", file=sys.stderr)
+                elif option == '1':
+                    del(finalpost[:10])
+                    break
+                elif option == '2':
+                    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                    cursor.execute('update user_time set topictime = "{}"where user_id = "{}"'.format(current_time, self.user_id))
+                    db.commit()
+                    cursor.execute('update user_time set topiclast = "{}"where user_id = "{}"'.format(finalpost[9][1],self.user_id))
+                    db.commit()
+                    quit1 = 1
+                    quit2 = 1
+                    break
+                else:
+                    print("Error: wrong command", file=sys.stderr)
+            if quit2 == 1:
+                break
+        if quit1 == 1:
+            return
+        else:
+            for i in range(len(finalpost)):
+                print(finalpost[i][0], finalpost[i][1], finalpost[i][2], finalpost[i][3],finalpost[i][5])
+                print('')
+                print(finalpost[i][4])
+                print('')
+            while True:
+                print('0. Compliment')
+                print('1. Back')
+                option = input('')
+                if option == '0':
+                    print('Choose the review or tip:')
+                    id = input('')
+                    print('Like it or not (1 or -1):')
+                    compliment = input('')
+                    if 0<= int(id) <= 9 and (compliment == '1' or compliment == '-1'):
+                        if finalpost[int(id)][2] == 'review':
+                            self.compliment_on_review(finalpost[int(id)][5],compliment)
+                        else:
+                            self.compliment_on_tip(finalpost[int(id)][5], compliment)
+                    elif compliment != '1' or compliment != '-1':
+                        print("Error: wrong compliment", file=sys.stderr)
+                    else:
+                        print("Error: wrong command", file=sys.stderr)
+                elif option == '1':
+                    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                    cursor.execute('update user_time set topictime = "{}"where user_id = "{}"'.format(current_time, self.user_id))
+                    db.commit()
+                    cursor.execute('update user_time set topiclast = "{}"where user_id = "{}"'.format(finalpost[-1][1],self.user_id))
+                    db.commit()
+                    break
+                else:
+                    print("Error: wrong command", file=sys.stderr)
+
 
     def mypost(self):
         mypost = []
@@ -423,7 +582,7 @@ class UI:
         :param up_or_down:int 1 means up -1 means down
         :return:
         '''
-        if up_or_down == 1:
+        if up_or_down == '1':
             cursor.execute("select user_id from review where review_id = '{}'".format(review_id))
             user = cursor.fetchone()[0]
             cursor.execute("update user set useful = useful + 1 where user_id = '{}'".format(user))
@@ -443,7 +602,7 @@ class UI:
         :param up_or_down: int 1 means up -1 means down
         :return:
         '''
-        if up_or_down == 1:
+        if up_or_down == '1':
             cursor.execute("select user_id from tip where tip_id = '{}'".format(tip_id))
             user = cursor.fetchone()[0]
             cursor.execute("update user set useful = useful + 1 where user_id = '{}'".format(user))
