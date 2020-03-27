@@ -210,7 +210,7 @@ class UI:
         while len(finalpost) > 10:
             quit2 = 0
             for i in range(10):
-                print('#{}'.format(i),finalpost[i][0],finalpost[i][3],finalpost[i][1])
+                print('#{}'.format(i),finalpost[i][0],' TOPIC: {} '.format(finalpost[i][3]),finalpost[i][1])
                 print('')
                 print('{}:'.format(finalpost[i][2]),finalpost[i][4])
                 print('')
@@ -253,7 +253,7 @@ class UI:
             return
         else:
             for i in range(len(finalpost)):
-                print('#{}'.format(i),finalpost[i][0],finalpost[i][3],finalpost[i][1])
+                print('#{}'.format(i),finalpost[i][0],' TOPIC: {} '.format(finalpost[i][3]),finalpost[i][1])
                 print('')
                 print('{}:'.format(finalpost[i][2]),finalpost[i][4])
                 print('')
@@ -332,7 +332,7 @@ class UI:
         while len(finalpost) > 10:
             quit2 = 0
             for i in range(10):
-                print('#{}'.format(i),finalpost[i][0],finalpost[i][3],finalpost[i][1])
+                print('#{}'.format(i),finalpost[i][0],' TOPIC: {} '.format(finalpost[i][3]),finalpost[i][1])
                 print('')
                 print('{}:'.format(finalpost[i][2]),finalpost[i][4])
                 print('')
@@ -375,7 +375,7 @@ class UI:
             return
         else:
             for i in range(len(finalpost)):
-                print('#{}'.format(i),finalpost[i][0],finalpost[i][3],finalpost[i][1])
+                print('#{}'.format(i),finalpost[i][0],' TOPIC: {} '.format(finalpost[i][3]),finalpost[i][1])
                 print('')
                 print('{}:'.format(finalpost[i][2]),finalpost[i][4])
                 print('')
