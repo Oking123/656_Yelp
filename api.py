@@ -164,7 +164,7 @@ class UI:
 
     def read_post_friend(self):
         quit1 = 0
-        post = []
+        finalpost = []
         # select friends from friend_list
         cursor.execute('select follower_id from friend_list where followed_id = "{}" ;'.format(self.user_id))
         results = cursor.fetchall()
@@ -182,31 +182,27 @@ class UI:
         # select refresh time from user
         cursor.execute('select friendtime from user_time where user_id = "{}"'.format(self.user_id))
         refresh_time = str(cursor.fetchone()[0])
+        cursor.execute('select friendlast from user_time where user_id = "{}"'.format(self.user_id))
+        last_time = str(cursor.fetchone()[0])
         # select reviews and tips
         for item in friend_list:
             cursor.execute('select user_id,review_date,name,review_text,review_id from ((select user_id, business_id, review_date,review_text,review_id from review where user_id = "{}") as A inner join (select business_id,name from business) as B on A.business_id = B.business_id);'.format(item))
             results = cursor.fetchall()
             if results:
                 for review in results:
-                    temp=(review[0],str(review[1]),'review',review[2],review[3],review[4])
-                    post.append(temp)
+                    if str(review[1])>refresh_time or str(review[1]) <last_time:
+                        temp=(review[0],str(review[1]),'review',review[2],review[3],review[4])
+                        finalpost.append(temp)
         for item in friend_list:
             cursor.execute('select user_id,tip_date,name,tip_text,tip_id from ((select user_id, business_id, tip_date,tip_text,tip_id from tip where user_id = "{}") as A inner join (select business_id,name from business) as B on A.business_id = B.business_id);'.format(item))
             results = cursor.fetchall()
             if results:
                 for tip in results:
-                    temp=(tip[0],str(tip[1]),'tip',tip[2],tip[3],tip[4])
-                    post.append(temp)
-        post = list(set(post))
-        post.sort(key = lambda i:i[1],reverse=True)
-
-        cursor.execute('select friendlast from user_time where user_id = "{}"'.format(self.user_id))
-        last_time = str(cursor.fetchone()[0])
-
-        finalpost = []
-        for item in post:
-            if item[1]>refresh_time or item[1]<last_time:
-                finalpost.append(item)
+                    if str(tip[1]) >refresh_time or str(tip[1]) <last_time:
+                        temp=(tip[0],str(tip[1]),'tip',tip[2],tip[3],tip[4])
+                        finalpost.append(temp)
+        finalpost = list(set(finalpost))
+        finalpost.sort(key = lambda i:i[1],reverse=True)
 
         if len(finalpost) == 0:
             return
@@ -291,7 +287,7 @@ class UI:
 
     def read_post_topic(self):
         quit1 = 0
-        post = []
+        finalpost = []
         # select followed_topic
         cursor.execute('select business_id from follow_topic where user_id = "{}"'.format(self.user_id))
         topic = cursor.fetchall()
@@ -304,7 +300,8 @@ class UI:
         # select refresh time
         cursor.execute('select topictime from user_time where user_id  = "{}"'.format(self.user_id))
         refresh_time = str(cursor.fetchone()[0])
-
+        cursor.execute('select topiclast from user_time where user_id = "{}"'.format(self.user_id))
+        last_time = str(cursor.fetchone()[0])
         # selec reviews and tips
         for item in topic_id:
             cursor.execute('select user_id, business_id, review_date,review_text,review_id from review where business_id = "{}";'.format(item))
@@ -313,28 +310,21 @@ class UI:
             result2 = cursor.fetchone()[0]
             if result1 and result2:
                 for review in result1:
-                    temp = (review[0], str(review[2]), 'review', result2, review[3],review[4])
-                    post.append(temp)
+                    if str(review[2])>refresh_time or str(review[2]) <last_time:
+                        temp = (review[0], str(review[2]), 'review', result2, review[3],review[4])
+                        finalpost.append(temp)
         for item in topic_id:
-            cursor.execute(
-                'select user_id, business_id, tip_date,tip_text,tip_id from tip where business_id = "{}";'.format(item))
+            cursor.execute('select user_id, business_id, tip_date,tip_text,tip_id from tip where business_id = "{}";'.format(item))
             result1 = cursor.fetchall()
             cursor.execute('select name from business where business_id = "{}"'.format(item))
             result2 = cursor.fetchone()[0]
             if result1 and result2:
                 for tip in result1:
-                    temp = (tip[0], str(tip[2]), 'tip', result2, tip[3],tip[4])
-                    post.append(temp)
-        post = list(set(post))
-        post.sort(key=lambda i: i[1],reverse = True)
-
-        cursor.execute('select topiclast from user_time where user_id = "{}"'.format(self.user_id))
-        last_time = str(cursor.fetchone()[0])
-
-        finalpost  = []
-        for item in post:
-            if item[1]>refresh_time or item[1]<last_time:
-                finalpost.append(item)
+                    if str(tip[2])>refresh_time or str(tip[2]) <last_time:
+                        temp = (tip[0], str(tip[2]), 'tip', result2, tip[3],tip[4])
+                        finalpost.append(temp)
+        finalpost = list(set(finalpost))
+        finalpost.sort(key=lambda i: i[1],reverse = True)
 
         if len(finalpost) == 0:
             return
