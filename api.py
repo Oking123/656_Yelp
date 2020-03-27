@@ -191,7 +191,7 @@ class UI:
             if results:
                 for review in results:
                     if str(review[1])>refresh_time or str(review[1]) <last_time:
-                        temp=(review[0],str(review[1]),'review',review[2],review[3],review[4])
+                        temp=(review[0],str(review[1]),'REVIEW',review[2],review[3],review[4])
                         finalpost.append(temp)
         for item in friend_list:
             cursor.execute('select user_id,tip_date,name,tip_text,tip_id from ((select user_id, business_id, tip_date,tip_text,tip_id from tip where user_id = "{}") as A inner join (select business_id,name from business) as B on A.business_id = B.business_id);'.format(item))
@@ -199,7 +199,7 @@ class UI:
             if results:
                 for tip in results:
                     if str(tip[1]) >refresh_time or str(tip[1]) <last_time:
-                        temp=(tip[0],str(tip[1]),'tip',tip[2],tip[3],tip[4])
+                        temp=(tip[0],str(tip[1]),'TIP',tip[2],tip[3],tip[4])
                         finalpost.append(temp)
         finalpost = list(set(finalpost))
         finalpost.sort(key = lambda i:i[1],reverse=True)
@@ -210,9 +210,9 @@ class UI:
         while len(finalpost) > 10:
             quit2 = 0
             for i in range(10):
-                print(finalpost[i][0],finalpost[i][1],finalpost[i][2],finalpost[i][3],finalpost[i][5])
+                print('#{}'.format(i),finalpost[i][0],finalpost[i][3],finalpost[i][1])
                 print('')
-                print(finalpost[i][4])
+                print('{}:'.format(finalpost[i][2]),finalpost[i][4])
                 print('')
             while True:
                 print('0. Compliment')
@@ -225,7 +225,7 @@ class UI:
                     print('Like it or not (1 or -1):')
                     compliment = input('')
                     if 0<= int(id) <= 9 and (compliment == '1' or compliment == '-1'):
-                        if finalpost[int(id)][2] == 'review':
+                        if finalpost[int(id)][2] == 'REVIEW':
                             self.compliment_on_review(finalpost[int(id)][5],compliment)
                         else:
                             self.compliment_on_tip(finalpost[int(id)][5], compliment)
@@ -253,9 +253,9 @@ class UI:
             return
         else:
             for i in range(len(finalpost)):
-                print(finalpost[i][0], finalpost[i][1], finalpost[i][2], finalpost[i][3],finalpost[i][5])
+                print('#{}'.format(i),finalpost[i][0],finalpost[i][3],finalpost[i][1])
                 print('')
-                print(finalpost[i][4])
+                print('{}:'.format(finalpost[i][2]),finalpost[i][4])
                 print('')
             while True:
                 print('0. Compliment')
@@ -267,7 +267,7 @@ class UI:
                     print('Like it or not (1 or -1):')
                     compliment = input('')
                     if 0<= int(id) <= 9 and (compliment == '1' or compliment == '-1'):
-                        if finalpost[int(id)][2] == 'review':
+                        if finalpost[int(id)][2] == 'REVIEW':
                             self.compliment_on_review(finalpost[int(id)][5],compliment)
                         else:
                             self.compliment_on_tip(finalpost[int(id)][5], compliment)
@@ -311,7 +311,7 @@ class UI:
             if result1 and result2:
                 for review in result1:
                     if str(review[2])>refresh_time or str(review[2]) <last_time:
-                        temp = (review[0], str(review[2]), 'review', result2, review[3],review[4])
+                        temp = (review[0], str(review[2]), 'REVIEW', result2, review[3],review[4])
                         finalpost.append(temp)
         for item in topic_id:
             cursor.execute('select user_id, business_id, tip_date,tip_text,tip_id from tip where business_id = "{}";'.format(item))
@@ -321,7 +321,7 @@ class UI:
             if result1 and result2:
                 for tip in result1:
                     if str(tip[2])>refresh_time or str(tip[2]) <last_time:
-                        temp = (tip[0], str(tip[2]), 'tip', result2, tip[3],tip[4])
+                        temp = (tip[0], str(tip[2]), 'TIP', result2, tip[3],tip[4])
                         finalpost.append(temp)
         finalpost = list(set(finalpost))
         finalpost.sort(key=lambda i: i[1],reverse = True)
@@ -332,9 +332,9 @@ class UI:
         while len(finalpost) > 10:
             quit2 = 0
             for i in range(10):
-                print(finalpost[i][0],finalpost[i][1],finalpost[i][2],finalpost[i][3],finalpost[i][5])
+                print('#{}'.format(i),finalpost[i][0],finalpost[i][3],finalpost[i][1])
                 print('')
-                print(finalpost[i][4])
+                print('{}:'.format(finalpost[i][2]),finalpost[i][4])
                 print('')
             while True:
                 print('0. Compliment')
@@ -347,7 +347,7 @@ class UI:
                     print('Like it or not (1 or -1):')
                     compliment = input('')
                     if 0<= int(id) <= 9 and (compliment == '1' or compliment == '-1'):
-                        if finalpost[int(id)][2] == 'review':
+                        if finalpost[int(id)][2] == 'REVIEW':
                             self.compliment_on_review(finalpost[int(id)][5],compliment)
                         else:
                             self.compliment_on_tip(finalpost[int(id)][5], compliment)
@@ -375,9 +375,9 @@ class UI:
             return
         else:
             for i in range(len(finalpost)):
-                print(finalpost[i][0], finalpost[i][1], finalpost[i][2], finalpost[i][3],finalpost[i][5])
+                print('#{}'.format(i),finalpost[i][0],finalpost[i][3],finalpost[i][1])
                 print('')
-                print(finalpost[i][4])
+                print('{}:'.format(finalpost[i][2]),finalpost[i][4])
                 print('')
             while True:
                 print('0. Compliment')
