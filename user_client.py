@@ -194,6 +194,10 @@ class UI:
         refresh_time = str(cursor.fetchone()[0])
         cursor.execute('select friendlast from user_time where user_id = "{}"'.format(self.user_id))
         last_time = str(cursor.fetchone()[0])
+        # update time
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        cursor.execute('update user_time set friendtime = "{}"where user_id = "{}"'.format(current_time, self.user_id))
+        db.commit()
         # select reviews and tips
         for item in friend_list:
             cursor.execute('select user_id,review_date,name,review_text,review_id,useful from ((select user_id, business_id, review_date,review_text,review_id,useful from review where user_id = "{}") as A inner join (select business_id,name from business) as B on A.business_id = B.business_id);'.format(item))
@@ -249,17 +253,14 @@ class UI:
                     del(finalpost[:10])
                     break
                 elif option == '2':
-                    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                    cursor.execute('update user_time set friendtime = "{}"where user_id = "{}"'.format(current_time, self.user_id))
-                    db.commit()
-                    cursor.execute('update user_time set friendlast = "{}"where user_id = "{}"'.format(finalpost[9][1],self.user_id))
-                    db.commit()
                     quit1 = 1
                     quit2 = 1
                     break
                 else:
                     print("Error: wrong command", file=sys.stderr)
             if quit2 == 1:
+                cursor.execute('update user_time set friendlast = "{}"where user_id = "{}"'.format(finalpost[9][1], self.user_id))
+                db.commit()
                 break
         if quit1 == 1:
             return
@@ -290,9 +291,6 @@ class UI:
                     else:
                         print("Error: wrong command", file=sys.stderr)
                 elif option == '1':
-                    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                    cursor.execute('update user_time set friendtime = "{}"where user_id = "{}"'.format(current_time, self.user_id))
-                    db.commit()
                     cursor.execute('update user_time set friendlast = "{}"where user_id = "{}"'.format(finalpost[-1][1],self.user_id))
                     db.commit()
                     break
@@ -316,6 +314,11 @@ class UI:
         refresh_time = str(cursor.fetchone()[0])
         cursor.execute('select topiclast from user_time where user_id = "{}"'.format(self.user_id))
         last_time = str(cursor.fetchone()[0])
+
+        # update time
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        cursor.execute('update user_time set topictime = "{}"where user_id = "{}"'.format(current_time, self.user_id))
+        db.commit()
         # selec reviews and tips
         for item in topic_id:
             cursor.execute('select user_id, business_id, review_date,review_text,review_id,useful from review where business_id = "{}";'.format(item))
@@ -375,9 +378,6 @@ class UI:
                     del(finalpost[:10])
                     break
                 elif option == '2':
-                    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                    cursor.execute('update user_time set topictime = "{}"where user_id = "{}"'.format(current_time, self.user_id))
-                    db.commit()
                     cursor.execute('update user_time set topiclast = "{}"where user_id = "{}"'.format(finalpost[9][1],self.user_id))
                     db.commit()
                     quit1 = 1
@@ -416,9 +416,6 @@ class UI:
                     else:
                         print("Error: wrong command", file=sys.stderr)
                 elif option == '1':
-                    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                    cursor.execute('update user_time set topictime = "{}"where user_id = "{}"'.format(current_time, self.user_id))
-                    db.commit()
                     cursor.execute('update user_time set topiclast = "{}"where user_id = "{}"'.format(finalpost[-1][1],self.user_id))
                     db.commit()
                     break
@@ -520,6 +517,8 @@ class UI:
                     db.commit()
             elif option == '3':
                 break
+            else:
+                print("Error: wrong command", file=sys.stderr)
 
     def create_group(self, group_name):
         '''
