@@ -64,7 +64,8 @@ class UI:
             print("0. Show my groups")
             print("1. Join a group")
             print("2. Quit a group")
-            print("3. Back")
+            print("3. create a group")
+            print("4. Back")
             print('----------------------------')
             option = input("")
             if option == '0':
@@ -79,6 +80,9 @@ class UI:
                 group_id = input("Quit group_ID:")
                 self.quit_group(group_id)
             elif option == '3':
+                group_name = input("Create group name:")
+                self.create_group(group_name)
+            elif option == '4':
                 return
             else:
                 print("Error: wrong command.", file=sys.stderr)
@@ -534,7 +538,7 @@ class UI:
         cursor.execute("select max(group_id) from group_list;")
         group_number = cursor.fetchone()[0]
         cursor.execute("insert into group_join(user_id, group_id) value('{}',{});".format(self.user_id, group_number))
-        print('Successful operation')
+        print('Successful create group, group_ID:{}'.format(group_number))
         db.commit()
         return group_number
 
@@ -640,7 +644,7 @@ class UI:
 
 ui = UI()
 ui.check_password()
-# ui.set_userid('___I9ZYdYGkZ6dMYxwJEIQ')
-# ui.compliment_on_tip('1',-1)
+# ui.set_userid('__0NoInkjvjBExSstL7_ww')
+# print(ui.create_group("Pokemon"))
 db.commit()
 db.close()
